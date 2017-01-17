@@ -1,0 +1,10 @@
+I = imread('IMG_20170106_165238_HDR.jpg');
+%压缩图片
+I = imresize(I,.35);
+%对图像进行灰度处理（可以解决地上湿的情况产生的问题）
+I = rgb2gray(I);
+I = double(I);
+[dx,dy]=gradient(I);
+magnitudeI=sqrt(dx.^2+dy.^2);
+figure;imagesc(magnitudeI);colormap(gray);%梯度幅值
+hold on;quiver(dx,dy);%叠加梯度方向
