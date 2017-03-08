@@ -11,9 +11,10 @@ import numpy as np
   
 global image_array
 global label_array
-image_array = np.zeros((1, 30600))
-label_array = np.zeros((1, 4), 'float')
-k = np.zeros((4, 4), 'float')
+image_array = np.zeros((1, 30600),'float32')
+label_array = np.zeros((1, 4), 'float32')
+
+k = np.zeros((4, 4), 'float32')
 for i in range(4):
     k[i, i] = 1
 
@@ -46,7 +47,7 @@ def convertjpg(jpgfile):
     g = cv2.equalizeHist(g)
     core = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
     g = cv2.erode(g, core)
-    g = g[150:320,:]
+    g = g[:,150:320]
     
     
     #存储路径
@@ -64,7 +65,8 @@ for jpgfile in glob.glob("E:/TDPS/Dataf/*.jpg"):
 
 for i in range(36):
     print (" %d"%(i))
-    m = int(raw_input())
+    m = (raw_input())
+    #请用英文输入法，0 代表右转；1 代表左转
     temp_lable = k[m]
     label_array = np.vstack((label_array, temp_lable))
     
