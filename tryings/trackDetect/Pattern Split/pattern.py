@@ -12,10 +12,10 @@ import numpy as np
 global image_array
 global label_array
 image_array = np.zeros((1, 30600),'float32')
-label_array = np.zeros((1, 4), 'float32')
+label_array = np.zeros((1, 2), 'float32')
 
-k = np.zeros((4, 4), 'float32')
-for i in range(4):
+k = np.zeros((2, 2), 'float32')
+for i in range(2):
     k[i, i] = 1
 
 
@@ -58,12 +58,12 @@ def convertjpg(jpgfile):
     
     
 #原图路径
-for jpgfile in glob.glob("E:/TDPS/Dataf/*.jpg"):
+for jpgfile in sorted(glob.glob("E:/TDPS/Dataf/*.jpg")):
     convertjpg(jpgfile)
 
 
 
-for i in range(36):
+for i in range(72):
     print (" %d"%(i))
     m = (raw_input())
     #请用英文输入法，0 代表右转；1 代表左转
