@@ -6,8 +6,6 @@ Created on Sun Apr 16 19:21:27 2017
 @author: cadmium
 """
 
-import glob
-import os
 
 
 import cv2
