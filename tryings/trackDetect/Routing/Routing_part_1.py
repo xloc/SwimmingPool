@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 
 import tortoise as t
+import recording
 
 
 
@@ -23,7 +24,8 @@ class Routing(t.Task):
         super(Routing, self).__init__()
 
         self.model = cv2.ml.ANN_MLP_load('E:/TDPS/data_0412/train/mlp28_0.003_0.0_0.5.xml')
-
+        self.recorder = recording.RecordingTask()
+        
     def step(self):
         img = eye.see()
         img_convert = Converting(img)
@@ -32,6 +34,7 @@ class Routing(t.Task):
         prediction = resp.argmax(-1)
         l, r =Direction_define(prediction)
         t.peripheral.set_lr(l, r)
+        self.recorder.step()
         
 
         
