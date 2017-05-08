@@ -18,7 +18,7 @@ char flag = FLAG_HEAD_FINDING;
 
 void warning(int warning_num){
 	if(warning_num == WARNING_REPEATED_START_HEAD_FINDING){
-pc.printf("[!] warn repeated finding head\n");
+
 	}
 
 }
@@ -36,16 +36,20 @@ char hex2nibble(char c){
 }
 
 bool validateChecksum(){
+	
+	// Calculate sum
 	uint8_t sum = 0;
-	for(int i = 0; i<(iBufferW - 3); i++){
+	for(int i = 0; i<(iBufferW - 3); i++)
+		// $ 1 2 3 # a b
+		//               ^
+		// So use index - 3
 		sum += buffer[i];
-pc.printf("%x ", buffer[i]);
-	}
-pc.printf("\n    actual sum %2x\n", sum);
-	uint8_t recv_sum = 
+
+	// Extract sum from last 2 hexadecimal
+	uint8_t recv_sum = (
 		(uint8_t)hex2nibble(buffer[iBufferW - 2]) << 4 | 
-		(uint8_t)hex2nibble(buffer[iBufferW - 1]);
-pc.printf("  expected sum %2x\n", recv_sum);
+		(uint8_t)hex2nibble(buffer[iBufferW - 1])
+	);
 
 	if(sum == recv_sum){
 		return true;
@@ -59,13 +63,12 @@ pc.printf("  expected sum %2x\n", recv_sum);
 
 int main(){
 	init_gyro();
-	pc.printf("Start...\n");
+
 	while(1){
 		char c = pc.getc();
 
 		if(c == '$'){
-		// if(flag == FLAG_HEAD_FINDING)
-pc.printf("find head received %c, %2x\n", c, c);
+		// Case: FLAG_HEAD_FINDING
 			iBufferW = 0;
 			buffer[iBufferW++] = c;
 			if(flag != FLAG_HEAD_FINDING){
@@ -74,7 +77,7 @@ pc.printf("find head received %c, %2x\n", c, c);
 			flag = FLAG_RECEIVING_BODY;
 			
 		}else if(flag == FLAG_RECEIVING_BODY){
-pc.printf("in recving body %c, %2x\n", c, c);
+		// Case: FLAG_RECEIVING_BODY
 			if(c == '#'){
 			// Char '#'' means start of checksum
 				buffer[iBufferW++] = c;
@@ -84,17 +87,17 @@ pc.printf("in recving body %c, %2x\n", c, c);
 				buffer[iBufferW++] = c;
 			}
 		}else if(flag == FLAG_RECEIVING_CHECKSUM1){
-pc.printf("in checksum 1 %c, %2x\n", c, c);
+		// Case: FLAG_RECEIVING_CHECKSUM1
 			buffer[iBufferW++] = c;
 			flag = FLAG_RECEIVING_CHECKSUM2;
 		}else if(flag == FLAG_RECEIVING_CHECKSUM2){
-pc.printf("in checksum 2 %c, %2x\n", c, c);
+		// Case: FLAG_RECEIVING_CHECKSUM2
 			buffer[iBufferW++] = c;
 
 			if(validateChecksum()){
 				pc.printf("+$OK#e9");
 			}else{
-				pc.printf("+$!SUM#65 ");
+				pc.printf("+$!SUM#65");
 			}
 
 			iBufferW = 0;
