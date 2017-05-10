@@ -3,6 +3,37 @@
 
 Serial pc(USBTX, USBRX); // tx, rx
 
+DigitalOut l0(p5);
+DigitalOut l1(p6);
+DigitalOut l2(p7);
+DigitalOut l3(p8);
+DigitalOut l4(p11);
+DigitalOut l5(p12);
+DigitalOut l6(p15);
+DigitalOut l7(p16);
+
+DigitalOut latch_enable_o2(p30);
+
+DigitalOut *latches[] = {
+	&l0, &l1, &l2, &l3, &l4, &l5, &l6, &l7
+};
+
+
+void init_latch(){
+	latch_enable_o2 = 1;
+	l0 = 0;
+	l1 = 0;
+	l2 = 0;
+	l3 = 0;
+	l4 = 0;
+	l5 = 0;
+	l6 = 0;
+	l7 = 0;
+	latch_enable_o2 = 0;
+}
+
+
+
 #define BUFFER_SIZE 100
 
 #define FLAG_RECEIVING_BODY 1
@@ -82,6 +113,18 @@ void response(){
 	}else if(buffer[1] == 'u'){
 	// Request ultrasonic sensor data
 
+	}else if(buffer[1] == 'm'){
+	// Test 74HC573
+		if(buffer[2] == '0'){
+			latch_enable_o2 = 1;
+			l0 = 0;
+			latch_enable_o2 = 0;
+		}else if(buffer[2] == '1'){
+			latch_enable_o2 = 1;
+			l0 = 1;
+			latch_enable_o2 = 0;
+		}
+		reply("OK");
 	}
 	else if(buffer[1]=='c'){
 	// Test Acknowledge
@@ -102,6 +145,7 @@ void response(){
 
 
 int main(){
+	init_latch();
 	init_gyro();
 
 	while(1){
