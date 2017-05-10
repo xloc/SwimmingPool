@@ -24,7 +24,6 @@ void warning(int warning_num){
 }
 
 
-
 char hex2nibble(char c){
 	if(c >= 'a' && c <= 'f'){
 		return c - 'a' + 10;
@@ -56,9 +55,50 @@ bool validateChecksum(){
 	}else{
 		return false;
 	}
-
-
 }
+
+const char HEX_LOOKUP_TABLE[] = "0123456789abcdef";
+void reply(char *message){
+	// Calculate char sum of message
+	char *input = message;
+	uint8_t sum = '+' + '$';
+	for(; (*input)!='\0' ; input++){
+		sum += *input;
+	}
+
+	static uint8_t sum_s[3] = {0};
+	sum_s[0] = HEX_LOOKUP_TABLE[ sum>>4 & 0x0F ];
+	sum_s[1] = HEX_LOOKUP_TABLE[ sum & 0x0F ];
+
+	pc.printf("+$%s#%s", message, sum_s);
+}
+
+void response(){
+	char rdata[20] = {0};
+	if(buffer[1]=='g'){
+	// Request gyroscope angle
+		sprintf(rdata, "%.2f", yaw);
+		reply(rdata);
+	}else if(buffer[1] == 'u'){
+	// Request ultrasonic sensor data
+
+	}
+	else if(buffer[1]=='c'){
+	// Test Acknowledge
+		reply("RECEIVED");
+	}else if(buffer[1] == 't'){
+	// Test Loop
+		char *dupli = rdata;
+		for(char *origin=(buffer+2); 
+			*origin!='#'; origin++, dupli++){
+			*dupli = *origin;
+		}
+		*dupli = '\0';
+		reply(rdata);
+	}
+}
+
+
 
 
 int main(){
@@ -95,7 +135,7 @@ int main(){
 			buffer[iBufferW++] = c;
 
 			if(validateChecksum()){
-				pc.printf("+$OK#e9");
+				response();
 			}else{
 				pc.printf("+$!SUM#65");
 			}
