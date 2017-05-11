@@ -1,32 +1,8 @@
 #include "mbed.h"
 #include "gyroscope.h"
+#include "latch.h"
 
 Serial pc(USBTX, USBRX); // tx, rx
-
-
-BusInOut latched_bus(p5, p6, p7, p8, p11, p12, p15, p16);
-
-
-#define LATCH_OUTPUT_ENABLE 1
-#define LATCH_OUTPUT_DISABLE 0
-#define LATCH_INPUT_ENABLE 0
-#define LATCH_INPUT_DISABLE 1
-DigitalOut latch_enable_o2(p30);
-DigitalOut latch_enable_i1(p29);
-
-
-void init_latch(){
-    // latched_bus.mode(OpenDrain);
-    // latched_bus.mode(PullUp);
-
-    latch_enable_i1 = LATCH_INPUT_DISABLE;
-    latch_enable_o2 = LATCH_OUTPUT_DISABLE;
-
-    latch_enable_o2 = LATCH_OUTPUT_ENABLE;
-    latched_bus = 0x00;
-    latch_enable_o2 = LATCH_OUTPUT_DISABLE;
-}
-
 
 Timer echo_duration;
 
@@ -110,24 +86,18 @@ void response(){
     }else if(buffer[1] == 'u'){
     // Request ultrasonic sensor data
 
-        // Set bus output
-        latched_bus.output();
-        // Enable Latch o2
-        latch_enable_o2 = LATCH_OUTPUT_ENABLE;
+        ENABLE_OUTPUT_LATCH(latch_enable_o2);
         // Send measure pulse to ultrasonic model
         latched_bus[0] = 0;
         wait_us(5);
         latched_bus[0] = 1;
         wait_us(10);
         latched_bus[0] = 0;
-        // Disable Latch o2
-        latch_enable_o2 = LATCH_OUTPUT_DISABLE;
+        DISABLE_OUTPUT_LATCH(latch_enable_o2);
 
 
-        // Set bus input (Must before enable input latch)
-        latched_bus.input();
-        // Enable input latch
-        latch_enable_i1 = LATCH_INPUT_ENABLE;
+
+        ENABLE_INPUT_LATCH(latch_enable_i1)
         // Measure echo pulse width
         while(!latched_bus[0]);
         echo_duration.start();
@@ -135,12 +105,10 @@ void response(){
         echo_duration.stop();
         float distance = (echo_duration.read_us()/2.0) * 0.034;
         echo_duration.reset();
-        // Disable input
-        latch_enable_i1 = LATCH_INPUT_DISABLE;
+        DISABLE_OUTPUT_LATCH(latch_enable_i1);
 
         sprintf(rdata, "%.2f", distance);
         reply(rdata);
-        // reply("test");
     }else if(buffer[1] == 'm'){
     // Test 74HC573
         if(buffer[2] == '0'){
@@ -217,9 +185,5 @@ int main(){
             iBufferW = 0;
             flag = FLAG_HEAD_FINDING;
         }
-
-        // pc.printf("%.2f\n", yaw);
-
-        // wait(1);
     }
 }
