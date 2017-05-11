@@ -3,35 +3,32 @@
 
 Serial pc(USBTX, USBRX); // tx, rx
 
-DigitalOut l0(p5);
-DigitalOut l1(p6);
-DigitalOut l2(p7);
-DigitalOut l3(p8);
-DigitalOut l4(p11);
-DigitalOut l5(p12);
-DigitalOut l6(p15);
-DigitalOut l7(p16);
 
+BusInOut latched_bus(p5, p6, p7, p8, p11, p12, p15, p16);
+
+
+#define LATCH_OUTPUT_ENABLE 1
+#define LATCH_OUTPUT_DISABLE 0
+#define LATCH_INPUT_ENABLE 0
+#define LATCH_INPUT_DISABLE 1
 DigitalOut latch_enable_o2(p30);
-
-DigitalOut *latches[] = {
-	&l0, &l1, &l2, &l3, &l4, &l5, &l6, &l7
-};
+DigitalOut latch_enable_i1(p29);
 
 
 void init_latch(){
-	latch_enable_o2 = 1;
-	l0 = 0;
-	l1 = 0;
-	l2 = 0;
-	l3 = 0;
-	l4 = 0;
-	l5 = 0;
-	l6 = 0;
-	l7 = 0;
-	latch_enable_o2 = 0;
+    // latched_bus.mode(OpenDrain);
+    // latched_bus.mode(PullUp);
+
+    latch_enable_i1 = LATCH_INPUT_DISABLE;
+    latch_enable_o2 = LATCH_OUTPUT_DISABLE;
+
+    latch_enable_o2 = LATCH_OUTPUT_ENABLE;
+    latched_bus = 0x00;
+    latch_enable_o2 = LATCH_OUTPUT_DISABLE;
 }
 
+
+Timer echo_duration;
 
 
 #define BUFFER_SIZE 100
@@ -48,148 +45,181 @@ char flag = FLAG_HEAD_FINDING;
 #define WARNING_REPEATED_START_HEAD_FINDING 0
 
 void warning(int warning_num){
-	if(warning_num == WARNING_REPEATED_START_HEAD_FINDING){
+    if(warning_num == WARNING_REPEATED_START_HEAD_FINDING){
 
-	}
+    }
 
 }
 
 
 char hex2nibble(char c){
-	if(c >= 'a' && c <= 'f'){
-		return c - 'a' + 10;
-	}else if(c >= '0' && c <= '9'){
-		return c - '0';
-	}else{
-		return -1;
-	}
+    if(c >= 'a' && c <= 'f'){
+        return c - 'a' + 10;
+    }else if(c >= '0' && c <= '9'){
+        return c - '0';
+    }else{
+        return -1;
+    }
 }
 
 bool validateChecksum(){
-	
-	// Calculate sum
-	uint8_t sum = 0;
-	for(int i = 0; i<(iBufferW - 3); i++)
-		// $ 1 2 3 # a b
-		//               ^
-		// So use index - 3
-		sum += buffer[i];
+    
+    // Calculate sum
+    uint8_t sum = 0;
+    for(int i = 0; i<(iBufferW - 3); i++)
+        // $ 1 2 3 # a b
+        //               ^
+        // So use index - 3
+        sum += buffer[i];
 
-	// Extract sum from last 2 hexadecimal
-	uint8_t recv_sum = (
-		(uint8_t)hex2nibble(buffer[iBufferW - 2]) << 4 | 
-		(uint8_t)hex2nibble(buffer[iBufferW - 1])
-	);
+    // Extract sum from last 2 hexadecimal
+    uint8_t recv_sum = (
+        (uint8_t)hex2nibble(buffer[iBufferW - 2]) << 4 | 
+        (uint8_t)hex2nibble(buffer[iBufferW - 1])
+    );
 
-	if(sum == recv_sum){
-		return true;
-	}else{
-		return false;
-	}
+    if(sum == recv_sum){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 const char HEX_LOOKUP_TABLE[] = "0123456789abcdef";
 void reply(char *message){
-	// Calculate char sum of message
-	char *input = message;
-	uint8_t sum = '+' + '$';
-	for(; (*input)!='\0' ; input++){
-		sum += *input;
-	}
+    // Calculate char sum of message
+    char *input = message;
+    uint8_t sum = '+' + '$';
+    for(; (*input)!='\0' ; input++){
+        sum += *input;
+    }
 
-	static uint8_t sum_s[3] = {0};
-	sum_s[0] = HEX_LOOKUP_TABLE[ sum>>4 & 0x0F ];
-	sum_s[1] = HEX_LOOKUP_TABLE[ sum & 0x0F ];
+    static uint8_t sum_s[3] = {0};
+    sum_s[0] = HEX_LOOKUP_TABLE[ sum>>4 & 0x0F ];
+    sum_s[1] = HEX_LOOKUP_TABLE[ sum & 0x0F ];
 
-	pc.printf("+$%s#%s", message, sum_s);
+    pc.printf("+$%s#%s", message, sum_s);
 }
 
 void response(){
-	char rdata[20] = {0};
-	if(buffer[1]=='g'){
-	// Request gyroscope angle
-		sprintf(rdata, "%.2f", yaw);
-		reply(rdata);
-	}else if(buffer[1] == 'u'){
-	// Request ultrasonic sensor data
+    char rdata[20] = {0};
+    if(buffer[1]=='g'){
+    // Request gyroscope angle
+        sprintf(rdata, "%.2f", yaw);
+        reply(rdata);
+    }else if(buffer[1] == 'u'){
+    // Request ultrasonic sensor data
 
-	}else if(buffer[1] == 'm'){
-	// Test 74HC573
-		if(buffer[2] == '0'){
-			latch_enable_o2 = 1;
-			l0 = 0;
-			latch_enable_o2 = 0;
-		}else if(buffer[2] == '1'){
-			latch_enable_o2 = 1;
-			l0 = 1;
-			latch_enable_o2 = 0;
-		}
-		reply("OK");
-	}
-	else if(buffer[1]=='c'){
-	// Test Acknowledge
-		reply("RECEIVED");
-	}else if(buffer[1] == 't'){
-	// Test Loop
-		char *dupli = rdata;
-		for(char *origin=(buffer+2); 
-			*origin!='#'; origin++, dupli++){
-			*dupli = *origin;
-		}
-		*dupli = '\0';
-		reply(rdata);
-	}
+        // Set bus output
+        latched_bus.output();
+        // Enable Latch o2
+        latch_enable_o2 = LATCH_OUTPUT_ENABLE;
+        // Send measure pulse to ultrasonic model
+        latched_bus[0] = 0;
+        wait_us(5);
+        latched_bus[0] = 1;
+        wait_us(10);
+        latched_bus[0] = 0;
+        // Disable Latch o2
+        latch_enable_o2 = LATCH_OUTPUT_DISABLE;
+
+
+        // Set bus input (Must before enable input latch)
+        latched_bus.input();
+        // Enable input latch
+        latch_enable_i1 = LATCH_INPUT_ENABLE;
+        // Measure echo pulse width
+        while(!latched_bus[0]);
+        echo_duration.start();
+        while(latched_bus[0]);
+        echo_duration.stop();
+        float distance = (echo_duration.read_us()/2.0) * 0.034;
+        echo_duration.reset();
+        // Disable input
+        latch_enable_i1 = LATCH_INPUT_DISABLE;
+
+        sprintf(rdata, "%.2f", distance);
+        reply(rdata);
+        // reply("test");
+    }else if(buffer[1] == 'm'){
+    // Test 74HC573
+        if(buffer[2] == '0'){
+            latch_enable_o2 = LATCH_OUTPUT_ENABLE;
+            latched_bus.output();
+            latched_bus[0] = 0;
+            latch_enable_o2 = LATCH_OUTPUT_DISABLE;
+        }else if(buffer[2] == '1'){
+            latch_enable_o2 = LATCH_OUTPUT_ENABLE;
+            latched_bus.output();
+            latched_bus[0] = 1;
+            latch_enable_o2 = LATCH_OUTPUT_DISABLE;
+        }
+        reply("OK");
+    }
+    else if(buffer[1]=='c'){
+    // Test Acknowledge
+        reply("RECEIVED");
+    }else if(buffer[1] == 't'){
+    // Test Loop
+        char *dupli = rdata;
+        for(char *origin=(buffer+2); 
+            *origin!='#'; origin++, dupli++){
+            *dupli = *origin;
+        }
+        *dupli = '\0';
+        reply(rdata);
+    }
 }
 
 
 
 
 int main(){
-	init_latch();
-	init_gyro();
+    init_latch();
+    init_gyro();
 
-	while(1){
-		char c = pc.getc();
+    while(1){
+        char c = pc.getc();
 
-		if(c == '$'){
-		// Case: FLAG_HEAD_FINDING
-			iBufferW = 0;
-			buffer[iBufferW++] = c;
-			if(flag != FLAG_HEAD_FINDING){
-				warning(WARNING_REPEATED_START_HEAD_FINDING);
-			}
-			flag = FLAG_RECEIVING_BODY;
-			
-		}else if(flag == FLAG_RECEIVING_BODY){
-		// Case: FLAG_RECEIVING_BODY
-			if(c == '#'){
-			// Char '#'' means start of checksum
-				buffer[iBufferW++] = c;
-				flag = FLAG_RECEIVING_CHECKSUM1;
-			}else{
-			// Or it is just part of body
-				buffer[iBufferW++] = c;
-			}
-		}else if(flag == FLAG_RECEIVING_CHECKSUM1){
-		// Case: FLAG_RECEIVING_CHECKSUM1
-			buffer[iBufferW++] = c;
-			flag = FLAG_RECEIVING_CHECKSUM2;
-		}else if(flag == FLAG_RECEIVING_CHECKSUM2){
-		// Case: FLAG_RECEIVING_CHECKSUM2
-			buffer[iBufferW++] = c;
+        if(c == '$'){
+        // Case: FLAG_HEAD_FINDING
+            iBufferW = 0;
+            buffer[iBufferW++] = c;
+            if(flag != FLAG_HEAD_FINDING){
+                warning(WARNING_REPEATED_START_HEAD_FINDING);
+            }
+            flag = FLAG_RECEIVING_BODY;
+            
+        }else if(flag == FLAG_RECEIVING_BODY){
+        // Case: FLAG_RECEIVING_BODY
+            if(c == '#'){
+            // Char '#'' means start of checksum
+                buffer[iBufferW++] = c;
+                flag = FLAG_RECEIVING_CHECKSUM1;
+            }else{
+            // Or it is just part of body
+                buffer[iBufferW++] = c;
+            }
+        }else if(flag == FLAG_RECEIVING_CHECKSUM1){
+        // Case: FLAG_RECEIVING_CHECKSUM1
+            buffer[iBufferW++] = c;
+            flag = FLAG_RECEIVING_CHECKSUM2;
+        }else if(flag == FLAG_RECEIVING_CHECKSUM2){
+        // Case: FLAG_RECEIVING_CHECKSUM2
+            buffer[iBufferW++] = c;
 
-			if(validateChecksum()){
-				response();
-			}else{
-				pc.printf("+$!SUM#65");
-			}
+            if(validateChecksum()){
+                response();
+            }else{
+                pc.printf("+$!SUM#65");
+            }
 
-			iBufferW = 0;
-			flag = FLAG_HEAD_FINDING;
-		}
+            iBufferW = 0;
+            flag = FLAG_HEAD_FINDING;
+        }
 
-		// pc.printf("%.2f\n", yaw);
+        // pc.printf("%.2f\n", yaw);
 
-		// wait(1);
-	}
+        // wait(1);
+    }
 }
