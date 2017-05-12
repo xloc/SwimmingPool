@@ -20,6 +20,7 @@ char flag = FLAG_HEAD_FINDING;
 
 #define WARNING_REPEATED_START_HEAD_FINDING 0
 
+
 void warning(int warning_num){
     if(warning_num == WARNING_REPEATED_START_HEAD_FINDING){
 
@@ -77,6 +78,53 @@ void reply(char *message){
     pc.printf("+$%s#%s", message, sum_s);
 }
 
+
+
+
+
+int get_distance(int id){
+    char info[30];
+
+    ENABLE_OUTPUT_LATCH(latch_enable_o2);
+    // Send measure pulse to ultrasonic sensor
+    latched_bus[id] = 0;
+    wait_us(5);
+    latched_bus[id] = 1;
+    wait_us(10);
+    latched_bus[id] = 0;
+    DISABLE_OUTPUT_LATCH(latch_enable_o2);
+
+
+    ENABLE_INPUT_LATCH(latch_enable_i1);
+    // Measure echo pulse width
+    echo_duration.stop();
+    echo_duration.reset();
+    echo_duration.start();
+    while(!latched_bus[id]){
+        if(echo_duration.read_ms() > 5){
+            DISABLE_INPUT_LATCH(latch_enable_i1);
+            return -1;
+        }
+    }
+    echo_duration.reset();
+    while(latched_bus[id]){
+        if(echo_duration.read_ms() > 40){
+            DISABLE_INPUT_LATCH(latch_enable_i1);
+            return -1;
+        }
+    }
+    echo_duration.stop();
+    float distance = (echo_duration.read_us()/2.0) * 0.34;
+    
+    DISABLE_INPUT_LATCH(latch_enable_i1);
+
+    return distance;
+}
+
+
+
+
+
 void response(){
     char rdata[20] = {0};
     if(buffer[1]=='g'){
@@ -85,29 +133,20 @@ void response(){
         reply(rdata);
     }else if(buffer[1] == 'u'){
     // Request ultrasonic sensor data
-
-        ENABLE_OUTPUT_LATCH(latch_enable_o2);
-        // Send measure pulse to ultrasonic model
-        latched_bus[0] = 0;
-        wait_us(5);
-        latched_bus[0] = 1;
-        wait_us(10);
-        latched_bus[0] = 0;
-        DISABLE_OUTPUT_LATCH(latch_enable_o2);
-
-
-        ENABLE_INPUT_LATCH(latch_enable_i1);
-        // Measure echo pulse width
-        while(!latched_bus[0]);
-        echo_duration.start();
-        while(latched_bus[0]);
-        echo_duration.stop();
-        float distance = (echo_duration.read_us()/2.0) * 0.034;
-        echo_duration.reset();
-        DISABLE_INPUT_LATCH(latch_enable_i1);
-
-        sprintf(rdata, "%.2f", distance);
-        reply(rdata);
+        int sensor_id = buffer[2] - '0';
+        if(sensor_id >= 0 && sensor_id <= 9){
+            int distance = get_distance(sensor_id);
+            if(distance != -1){
+                sprintf(rdata, "%d", distance);
+                reply(rdata);
+            }else{
+                reply("!DISTANCE");
+            }
+            
+        }else{
+            reply("!ID");
+        }
+        
     }else if(buffer[1] == 'm'){
     // Test 74HC573
         if(buffer[2] == '0'){
