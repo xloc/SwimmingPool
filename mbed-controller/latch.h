@@ -14,11 +14,11 @@ extern DigitalOut latch_enable_i1;
 #define LATCH_INPUT_DISABLE 1
 
 
-#define ENABLE_OUTPUT_LATCH(PIN) do{latched_bus.output();PIN = LATCH_OUTPUT_ENABLE;}while(0);
-#define DISABLE_OUTPUT_LATCH(PIN) do{PIN = LATCH_OUTPUT_DISABLE;}while(0);
+#define ENABLE_OUTPUT_LATCH(PIN) do{latched_bus.output();PIN = LATCH_OUTPUT_ENABLE;}while(0)
+#define DISABLE_OUTPUT_LATCH(PIN) do{PIN = LATCH_OUTPUT_DISABLE;}while(0)
 
-#define ENABLE_INPUT_LATCH(PIN) do{latched_bus.input(); PIN = LATCH_INPUT_ENABLE;}while(0);
-#define DISABLE_INPUT_LATCH(PIN) do{PIN = LATCH_INPUT_DISABLE;}while(0);
+#define ENABLE_INPUT_LATCH(PIN) do{latched_bus.input(); PIN = LATCH_INPUT_ENABLE;}while(0)
+#define DISABLE_INPUT_LATCH(PIN) do{PIN = LATCH_INPUT_DISABLE;}while(0)
 
 void init_latch();
 

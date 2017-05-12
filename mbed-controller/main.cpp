@@ -96,8 +96,7 @@ void response(){
         DISABLE_OUTPUT_LATCH(latch_enable_o2);
 
 
-
-        ENABLE_INPUT_LATCH(latch_enable_i1)
+        ENABLE_INPUT_LATCH(latch_enable_i1);
         // Measure echo pulse width
         while(!latched_bus[0]);
         echo_duration.start();
@@ -105,7 +104,7 @@ void response(){
         echo_duration.stop();
         float distance = (echo_duration.read_us()/2.0) * 0.034;
         echo_duration.reset();
-        DISABLE_OUTPUT_LATCH(latch_enable_i1);
+        DISABLE_INPUT_LATCH(latch_enable_i1);
 
         sprintf(rdata, "%.2f", distance);
         reply(rdata);
