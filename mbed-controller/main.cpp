@@ -79,8 +79,52 @@ void reply(char *message){
 }
 
 
+PwmOut motor_pwm[] = {
+    PwmOut(p24),PwmOut(p23),PwmOut(p22),PwmOut(p21)
+};
+
+void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
+    motor_pwm[motor_id] = speed>0 ? speed : -speed;
+    if(speed > 0){
+        if(*p_speed > 0){
+        // Case: + speed required, + previous
+            // already satisfied -> Do nothing
+            return;
+        }else{
+        // Case: + speed required, - previous
+            // Reverse direction flag & update dir output
+        // Case: + speed required, no previous
+            // Init direction flag & update dir output
+            *p_speed = 1;
+        }
+        ENABLE_OUTPUT_LATCH(latch_enable_o2);
+        latched_bus[2*motor_id] = 1;
+        latched_bus[2*motor_id+1] = 0;
+        DISABLE_OUTPUT_LATCH(latch_enable_o2);
+
+    }else{
+        if(*p_speed < 0){
+            return;
+        }else{
+            *p_speed = -1;
+        }
+        ENABLE_OUTPUT_LATCH(latch_enable_o2);
+        latched_bus[2*motor_id] = 0;
+        latched_bus[2*motor_id+1] = 1;
+        DISABLE_OUTPUT_LATCH(latch_enable_o2);
+    }
+}
+
+void set_speeds(float q, float a, float w, float s){
+    static int8_t pq, pa, pw, ps = 0;
+    set_speed(0, q, &pq);
+    set_speed(1, a, &pa);
+    set_speed(2, w, &pw);
+    set_speed(3, s, &ps);
+}
+
 void response(){
-    char rdata[20] = {0};
+    char rdata[50] = {0};
     if(buffer[1]=='g'){
     // Request gyroscope angle
         sprintf(rdata, "%.2f", yaw);
@@ -103,18 +147,28 @@ void response(){
         
     }else if(buffer[1] == 'm'){
     // Test 74HC573
-        if(buffer[2] == '0'){
-            latch_enable_o2 = LATCH_OUTPUT_ENABLE;
-            latched_bus.output();
-            latched_bus[0] = 0;
-            latch_enable_o2 = LATCH_OUTPUT_DISABLE;
-        }else if(buffer[2] == '1'){
-            latch_enable_o2 = LATCH_OUTPUT_ENABLE;
-            latched_bus.output();
-            latched_bus[0] = 1;
-            latch_enable_o2 = LATCH_OUTPUT_DISABLE;
-        }
-        reply("OK");
+        float q,a,w,s;
+        sscanf(buffer+2, "%f %f %f %f", &q, &a, &w, &s);
+        set_speeds(q,a,w,s);
+        // if(buffer[2] == '0'){
+        //     latch_enable_o2 = LATCH_OUTPUT_ENABLE;
+        //     latched_bus.output();
+        //     latched_bus[0] = 0;
+        //     latch_enable_o2 = LATCH_OUTPUT_DISABLE;
+        // }else if(buffer[2] == '1'){
+        //     latch_enable_o2 = LATCH_OUTPUT_ENABLE;
+        //     latched_bus.output();
+        //     latched_bus[0] = 1;
+        //     latch_enable_o2 = LATCH_OUTPUT_DISABLE;
+        // }
+        sprintf(rdata, "%.2f,%.2f,%.2f,%.2f", q,a,w,s);
+        reply(rdata);
+    // }else if(buffer[1] == '0'){
+    //     latched_bus[6] = !latched_bus[6];
+    //     reply("OK");
+    // }else if(buffer[1] == '9'){
+    //     latched_bus[7] = !latched_bus[7];
+    //     reply("OK");
     }
     else if(buffer[1]=='c'){
     // Test Acknowledge
@@ -169,6 +223,7 @@ int main(){
             buffer[iBufferW++] = c;
 
             if(validateChecksum()){
+                buffer[iBufferW - 3] = '\0';
                 response();
             }else{
                 pc.printf("+$!SUM#65");

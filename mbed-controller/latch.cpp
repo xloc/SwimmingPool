@@ -1,6 +1,6 @@
 #include "latch.h"
 
-BusInOut latched_bus(p5, p6, p7, p8, p11, p12, p15, p16);
+BusInOut latched_bus(p5, p6, p7, p8, p11, p12, p17, p18);
 
 DigitalOut latch_enable_o2(p30);
 DigitalOut latch_enable_i1(p29);
