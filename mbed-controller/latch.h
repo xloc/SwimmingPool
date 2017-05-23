@@ -5,6 +5,7 @@
 
 extern BusInOut latched_bus;
 
+extern DigitalOut latch_enable_o1;
 extern DigitalOut latch_enable_o2;
 extern DigitalOut latch_enable_i1;
 

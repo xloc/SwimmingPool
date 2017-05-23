@@ -97,10 +97,10 @@ void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
             // Init direction flag & update dir output
             *p_speed = 1;
         }
-        ENABLE_OUTPUT_LATCH(latch_enable_o2);
+        ENABLE_OUTPUT_LATCH(latch_enable_o1);
         latched_bus[2*motor_id] = 1;
         latched_bus[2*motor_id+1] = 0;
-        DISABLE_OUTPUT_LATCH(latch_enable_o2);
+        DISABLE_OUTPUT_LATCH(latch_enable_o1);
 
     }else{
         if(*p_speed < 0){
@@ -108,10 +108,10 @@ void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
         }else{
             *p_speed = -1;
         }
-        ENABLE_OUTPUT_LATCH(latch_enable_o2);
+        ENABLE_OUTPUT_LATCH(latch_enable_o1);
         latched_bus[2*motor_id] = 0;
         latched_bus[2*motor_id+1] = 1;
-        DISABLE_OUTPUT_LATCH(latch_enable_o2);
+        DISABLE_OUTPUT_LATCH(latch_enable_o1);
     }
 }
 
