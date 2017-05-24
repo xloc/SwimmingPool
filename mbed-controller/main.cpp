@@ -40,7 +40,7 @@ char hex2nibble(char c){
 }
 
 bool validateChecksum(){
-    
+
     // Calculate sum
     uint8_t sum = 0;
     for(int i = 0; i<(iBufferW - 3); i++)
@@ -51,7 +51,7 @@ bool validateChecksum(){
 
     // Extract sum from last 2 hexadecimal
     uint8_t recv_sum = (
-        (uint8_t)hex2nibble(buffer[iBufferW - 2]) << 4 | 
+        (uint8_t)hex2nibble(buffer[iBufferW - 2]) << 4 |
         (uint8_t)hex2nibble(buffer[iBufferW - 1])
     );
 
@@ -78,9 +78,31 @@ void reply(char *message){
     pc.printf("+$%s#%s", message, sum_s);
 }
 
+#define MOTOR_Q_PWMPIN p24
+#define MOTOR_A_PWMPIN p23
+#define MOTOR_W_PWMPIN p22
+#define MOTOR_S_PWMPIN p21
+
+#define MOTOR_Q_REVERSE
+#define MOTOR_A_REVERSE
+#define MOTOR_W_REVERSE
+#define MOTOR_S_REVERSE
+
+
+int MOTOR_DIR_PINMAP[4][2] = {
+// Motor Q
+{6, 7},
+// Motor A
+{4, 5},
+// Motor W
+{3, 2},
+// Motor S
+{1, 0}
+};
 
 PwmOut motor_pwm[] = {
-    PwmOut(p24),PwmOut(p23),PwmOut(p22),PwmOut(p21)
+    PwmOut(MOTOR_Q_PWMPIN),PwmOut(MOTOR_A_PWMPIN),
+    PwmOut(MOTOR_W_PWMPIN),PwmOut(MOTOR_S_PWMPIN)
 };
 
 void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
@@ -98,8 +120,8 @@ void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
             *p_speed = 1;
         }
         ENABLE_OUTPUT_LATCH(latch_enable_o1);
-        latched_bus[2*motor_id] = 1;
-        latched_bus[2*motor_id+1] = 0;
+        latched_bus[ MOTOR_DIR_PINMAP[motor_id][0] ] = 1;
+        latched_bus[ MOTOR_DIR_PINMAP[motor_id][1] ] = 0;
         DISABLE_OUTPUT_LATCH(latch_enable_o1);
 
     }else{
@@ -109,18 +131,18 @@ void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
             *p_speed = -1;
         }
         ENABLE_OUTPUT_LATCH(latch_enable_o1);
-        latched_bus[2*motor_id] = 0;
-        latched_bus[2*motor_id+1] = 1;
+        latched_bus[ MOTOR_DIR_PINMAP[motor_id][0] ] = 0;
+        latched_bus[ MOTOR_DIR_PINMAP[motor_id][1] ] = 1;
         DISABLE_OUTPUT_LATCH(latch_enable_o1);
     }
 }
 
 void set_speeds(float q, float a, float w, float s){
     static int8_t pq, pa, pw, ps = 0;
-    set_speed(0, q, &pq);
-    set_speed(1, a, &pa);
-    set_speed(2, w, &pw);
-    set_speed(3, s, &ps);
+    set_speed(0, MOTOR_Q_REVERSE q, &pq);
+    set_speed(1, MOTOR_A_REVERSE a, &pa);
+    set_speed(2, MOTOR_W_REVERSE w, &pw);
+    set_speed(3, MOTOR_S_REVERSE s, &ps);
 }
 
 void response(){
@@ -140,11 +162,11 @@ void response(){
             }else{
                 reply("!DISTANCE");
             }
-            
+
         }else{
             reply("!ID");
         }
-        
+
     }else if(buffer[1] == 'm'){
     // Test 74HC573
         float q,a,w,s;
@@ -176,7 +198,7 @@ void response(){
     }else if(buffer[1] == 't'){
     // Test Loop
         char *dupli = rdata;
-        for(char *origin=(buffer+2); 
+        for(char *origin=(buffer+2);
             *origin!='#'; origin++, dupli++){
             *dupli = *origin;
         }
@@ -203,7 +225,7 @@ int main(){
                 warning(WARNING_REPEATED_START_HEAD_FINDING);
             }
             flag = FLAG_RECEIVING_BODY;
-            
+
         }else if(flag == FLAG_RECEIVING_BODY){
         // Case: FLAG_RECEIVING_BODY
             if(c == '#'){
