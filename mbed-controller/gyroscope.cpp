@@ -1,6 +1,6 @@
 #include "gyroscope.h"
 
-Serial device(p9, p10);  // tx, rx
+Serial device(p28, p27);  // tx, rx
 
 char gyroBuffer[20] = {0};
 uint8_t gwi = 0;
