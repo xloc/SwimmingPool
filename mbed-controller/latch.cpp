@@ -1,10 +1,14 @@
 #include "latch.h"
 
-BusInOut latched_bus(p5, p6, p7, p8, p11, p12, p17, p18);
+// BusInOut latched_bus(p5, p6, p7, p8, p11, p12, p17, p18);
+BusInOut latched_bus(p5, p6, p7, p8, p18, p17, p16, p15);
 
-DigitalOut latch_enable_o1(p26);
-DigitalOut latch_enable_o2(p30);
-DigitalOut latch_enable_i1(p29);
+// DigitalOut latch_enable_o1(p26);
+// DigitalOut latch_enable_o2(p30);
+// DigitalOut latch_enable_i1(p29);
+DigitalOut latch_enable_o1(p30);
+DigitalOut latch_enable_o2(p29);
+DigitalOut latch_enable_i1(p12);
 
 void init_latch(){
     // latched_bus.mode(OpenDrain);
