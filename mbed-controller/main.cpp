@@ -111,7 +111,37 @@ char* wireless_get(char *p_message){
 }
 
 
+/**
+ All supported commands:
+ * g: gyroscope yaw.
+    "g"
+    return angle in float
+ * u: ultrasonic ranging.
+    "u?" (? is integer id)
+    return distance in milimeter
+    return "!DISTANCE" if distance invalid
+    return "!ID" if id invalid
 
+ * m: control speed.
+    "m? ? ? ?" (? is float in range [-1,1])
+    return loop backed speeds in form "%.2f,%.2f,%.2f,%.2f"
+
+ * c: test acknowledge.
+    "c"
+    return "RECEIVED"
+
+ * t: loop test. return what sent back
+    "t?" (? is string that should loop back)
+    return ?
+
+ * w: wireless send.
+    "w?" (? is message)
+    return "SEND_OK"
+
+ * r: wireless read.
+    "r"
+    return received message
+ */
 void response(){
     char rdata[RESPONSE_BUFFER_SIZE] = {0};
     if(buffer[1]=='g'){
