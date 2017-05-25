@@ -9,6 +9,7 @@ Serial pc(USBTX, USBRX); // tx, rx
 
 
 #define BUFFER_SIZE 100
+#define RESPONSE_BUFFER_SIZE 50
 
 #define FLAG_RECEIVING_BODY 1
 #define FLAG_HEAD_FINDING 0
@@ -79,9 +80,40 @@ void reply(char *message){
     pc.printf("+$%s#%s", message, sum_s);
 }
 
+#define WIRELESS_RECEIVED
+#define WIRELESS_NOT_RECEIVED
+
+Serial wireless_uart(p9, p10);
+
+/**
+ *
+ */
+void wireless_send(char *message){
+    wireless_uart.printf(message);
+}
+
+char* wireless_get(char *p_message){
+    if(wireless_uart.readable()){
+        int i = 0;
+        // While data avaliable and rx buffer not full
+        // "i" should in range [0, SIZE-1], so i < SIZE is the condition
+        // and it should be a space for '\0' so i < SIZE - 1
+        while(wireless_uart.readable() && i < RESPONSE_BUFFER_SIZE - 1){
+            p_message[i++] = wireless_uart.getc();
+        }
+        // Append '\0'
+        p_message[i] = '\0';
+
+        return WIRELESS_RECEIVED;
+    }else{
+        return WIRELESS_NOT_RECEIVED;
+    }
+}
+
+
 
 void response(){
-    char rdata[50] = {0};
+    char rdata[RESPONSE_BUFFER_SIZE] = {0};
     if(buffer[1]=='g'){
     // Request gyroscope angle
         sprintf(rdata, "%.2f", yaw);
@@ -139,6 +171,27 @@ void response(){
         }
         *dupli = '\0';
         reply(rdata);
+    }else if(buffer[1] == 'w'){
+    // Wireless Send
+        // Prepare message:
+        // Copy data segment to rdata
+        char *dupli = rdata;
+        for(char *origin=(buffer+2); *origin!='#'; origin++, dupli++){
+            *dupli = *origin;
+        }
+        // Append '\0' after all
+        *dupli = '\0';
+
+        // Send message througe wireless_uart
+        wireless_send(rdata);
+        reply("SEND_OK");
+    }else if(buffer[1] == 'r'){
+        int status = wireless_get(&rdata);
+        if(status == WIRELESS_RECEIVED){
+            reply(rdata);
+        }else(status){
+            reply("!NO_DATA");
+        }
     }
 }
 
