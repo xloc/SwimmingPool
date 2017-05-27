@@ -9,7 +9,7 @@ Serial pc(USBTX, USBRX); // tx, rx
 
 
 #define BUFFER_SIZE 100
-#define RESPONSE_BUFFER_SIZE 50
+#define RESPONSE_BUFFER_SIZE 100
 
 #define FLAG_RECEIVING_BODY 1
 #define FLAG_HEAD_FINDING 0
@@ -195,8 +195,7 @@ void response(){
     }else if(buffer[1] == 't'){
     // Test Loop
         char *dupli = rdata;
-        for(char *origin=(buffer+2);
-            *origin!='#'; origin++, dupli++){
+        for(char *origin=(buffer+2); *origin!='\0'; origin++, dupli++){
             *dupli = *origin;
         }
         *dupli = '\0';
@@ -206,7 +205,7 @@ void response(){
         // Prepare message:
         // Copy data segment to rdata
         char *dupli = rdata;
-        for(char *origin=(buffer+2); *origin!='#'; origin++, dupli++){
+        for(char *origin=(buffer+2); *origin!='\0'; origin++, dupli++){
             *dupli = *origin;
         }
         // Append '\0' after all
