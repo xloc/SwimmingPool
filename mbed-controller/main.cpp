@@ -80,8 +80,8 @@ void reply(char *message){
     pc.printf("+$%s#%s", message, sum_s);
 }
 
-#define WIRELESS_RECEIVED
-#define WIRELESS_NOT_RECEIVED
+#define WIRELESS_RECEIVED 2
+#define WIRELESS_NOT_RECEIVED 3
 
 Serial wireless_uart(p9, p10);
 
@@ -92,7 +92,7 @@ void wireless_send(char *message){
     wireless_uart.printf(message);
 }
 
-char* wireless_get(char *p_message){
+int wireless_get(char *p_message){
     if(wireless_uart.readable()){
         int i = 0;
         // While data avaliable and rx buffer not full
@@ -216,10 +216,10 @@ void response(){
         wireless_send(rdata);
         reply("SEND_OK");
     }else if(buffer[1] == 'r'){
-        int status = wireless_get(&rdata);
+        int status = wireless_get(rdata);
         if(status == WIRELESS_RECEIVED){
             reply(rdata);
-        }else(status){
+        }else{
             reply("!NO_DATA");
         }
     }
