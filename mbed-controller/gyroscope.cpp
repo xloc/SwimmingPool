@@ -7,6 +7,8 @@ uint8_t gwi = 0;
 
 float yaw = 0;
 
+float a_x = 0, a_y = 0, a_z = 0;
+
 extern Serial pc;
 
 int findPackHead(){
@@ -42,6 +44,18 @@ void parseData(char* d){
         //////////////////
 
         // pc.printf("      %8.2f\n", yaw_+360*turnNum);
+    }else if(d[1] == 0x51){
+        double x, y, z;
+        y = int16_t(d[3] << 8 | d[2]);
+        y = y / 32768.0 * 16;
+        x = int16_t(d[5] << 8 | d[4]);
+        x = x / 32768.0 * 16;
+        z = int16_t(d[7] << 8 | d[6]);
+        z = z / 32768.0 * 16;
+
+        a_x = x;
+        a_y = y;
+        a_z = z;
     }
 }
 

@@ -141,6 +141,10 @@ int wireless_get(char *p_message){
  * r: wireless read.
     "r"
     return received message
+
+ * a: 3-axes accelerometer
+    "a"
+    return "?,?,?" where ?s are head, left and down accelerometer readings in m/s
  */
 void response(){
     char rdata[RESPONSE_BUFFER_SIZE] = {0};
@@ -221,6 +225,10 @@ void response(){
         }else{
             reply("!NO_DATA");
         }
+    }else if(buffer[1] == 'a'){
+    // Request acceleration of 3 axis
+        sprintf(rdata, "%.3f,%.3f,%.3f", a_x, a_y, a_z);
+        reply(rdata);
     }
 }
 
