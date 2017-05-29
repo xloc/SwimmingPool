@@ -27,6 +27,22 @@ PwmOut motor_pwm[] = {
     PwmOut(MOTOR_W_PWMPIN),PwmOut(MOTOR_S_PWMPIN)
 };
 
+Ticker t;
+#define WATCHDOG_COUNT_RELOAD 20
+int watchdog_counter = WATCHDOG_COUNT_RELOAD;
+
+void watchdog(){
+    if(watchdog_counter > 0){
+        watchdog_counter--;
+    }else{
+        set_speeds(0, 0, 0, 0);
+    }
+}
+
+void init_motor(){
+    t.attach(&watchdog, 0.1);
+}
+
 void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
     motor_pwm[motor_id] = speed>0 ? speed : -speed;
     if(speed > 0){
@@ -65,4 +81,5 @@ void set_speeds(float q, float a, float w, float s){
     set_speed(1, MOTOR_A_REVERSE a, &pa);
     set_speed(2, MOTOR_W_REVERSE w, &pw);
     set_speed(3, MOTOR_S_REVERSE s, &ps);
+    watchdog_counter = WATCHDOG_COUNT_RELOAD;
 }

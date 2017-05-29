@@ -185,8 +185,8 @@ void response(){
         //     latched_bus[0] = 1;
         //     latch_enable_o2 = LATCH_OUTPUT_DISABLE;
         // }
-        sprintf(rdata, "%.2f,%.2f,%.2f,%.2f", q,a,w,s);
-        reply(rdata);
+        // sprintf(rdata, "%.2f,%.2f,%.2f,%.2f", q,a,w,s);
+        reply("OK");
     // }else if(buffer[1] == '0'){
     //     latched_bus[6] = !latched_bus[6];
     //     reply("OK");
@@ -239,6 +239,7 @@ void response(){
 int main(){
     init_latch();
     init_gyro();
+    init_motor();
 
     while(1){
         char c = pc.getc();

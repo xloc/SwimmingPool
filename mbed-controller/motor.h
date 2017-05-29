@@ -5,5 +5,6 @@
 #include "latch.h"
 
 void set_speeds(float q, float a, float w, float s);
+void init_motor();
 
 #endif
