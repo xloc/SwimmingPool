@@ -144,7 +144,8 @@ int wireless_get(char *p_message){
 
  * a: 3-axes accelerometer
     "a"
-    return "?,?,?" where ?s are head, left and down accelerometer readings in m/s
+    return "?,?,?"
+        where ?s are head, right and down accelerometer readings in unit g
  */
 void response(){
     char rdata[RESPONSE_BUFFER_SIZE] = {0};
