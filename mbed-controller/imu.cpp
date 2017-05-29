@@ -1,4 +1,4 @@
-#include "gyroscope.h"
+#include "imu.h"
 
 Serial device(p28, p27);  // tx, rx
 

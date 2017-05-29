@@ -1,6 +1,6 @@
 #include "mbed.h"
 
-#include "gyroscope.h"
+#include "imu.h"
 #include "latch.h"
 #include "distance.h"
 #include "motor.h"
