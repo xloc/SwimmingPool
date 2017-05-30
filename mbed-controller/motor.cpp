@@ -5,21 +5,31 @@
 #define MOTOR_W_PWMPIN p22
 #define MOTOR_S_PWMPIN p21
 
+// Add '-' to define, if reverse is needed
 #define MOTOR_Q_REVERSE
 #define MOTOR_A_REVERSE
 #define MOTOR_W_REVERSE
 #define MOTOR_S_REVERSE
 
+// With the reference of latcher pin
+#define MOTOR_Q_PIN1 6
+#define MOTOR_Q_PIN2 7
+#define MOTOR_A_PIN1 4
+#define MOTOR_A_PIN2 5
+#define MOTOR_W_PIN1 3
+#define MOTOR_W_PIN2 2
+#define MOTOR_S_PIN1 1
+#define MOTOR_S_PIN2 0
+
+#define WATCHDOG_COUNT_RELOAD 20
+#define WATCHDOG_PERIOD 0.1
+
 
 int MOTOR_DIR_PINMAP[4][2] = {
-// Motor Q
-{6, 7},
-// Motor A
-{4, 5},
-// Motor W
-{3, 2},
-// Motor S
-{1, 0}
+    {MOTOR_Q_PIN1, MOTOR_Q_PIN2}, // Motor Q
+    {MOTOR_A_PIN1, MOTOR_A_PIN2}, // Motor A
+    {MOTOR_W_PIN1, MOTOR_W_PIN2}, // Motor W
+    {MOTOR_S_PIN1, MOTOR_S_PIN1}  // Motor S
 };
 
 PwmOut motor_pwm[] = {
@@ -28,7 +38,7 @@ PwmOut motor_pwm[] = {
 };
 
 Ticker t;
-#define WATCHDOG_COUNT_RELOAD 20
+
 int watchdog_counter = WATCHDOG_COUNT_RELOAD;
 
 void watchdog(){
@@ -40,7 +50,7 @@ void watchdog(){
 }
 
 void init_motor(){
-    t.attach(&watchdog, 0.1);
+    t.attach(&watchdog, WATCHDOG_PERIOD);
 }
 
 void set_speed(uint8_t motor_id, float speed, int8_t *p_speed){
