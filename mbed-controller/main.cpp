@@ -83,7 +83,7 @@ void reply(char *message){
 #define WIRELESS_RECEIVED 2
 #define WIRELESS_NOT_RECEIVED 3
 
-Serial wireless_uart(p9, p10);
+Serial wireless_uart(p13, p14); //tx rx
 
 /**
  *
