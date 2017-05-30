@@ -1,29 +1,5 @@
 #include "motor.h"
 
-#define MOTOR_Q_PWMPIN p24
-#define MOTOR_A_PWMPIN p23
-#define MOTOR_W_PWMPIN p22
-#define MOTOR_S_PWMPIN p21
-
-// Add '-' to define, if reverse is needed
-#define MOTOR_Q_REVERSE
-#define MOTOR_A_REVERSE
-#define MOTOR_W_REVERSE
-#define MOTOR_S_REVERSE
-
-// With the reference of latcher pin
-#define MOTOR_Q_PIN1 6
-#define MOTOR_Q_PIN2 7
-#define MOTOR_A_PIN1 4
-#define MOTOR_A_PIN2 5
-#define MOTOR_W_PIN1 3
-#define MOTOR_W_PIN2 2
-#define MOTOR_S_PIN1 1
-#define MOTOR_S_PIN2 0
-
-#define WATCHDOG_COUNT_RELOAD 20
-#define WATCHDOG_PERIOD 0.1
-
 
 int MOTOR_DIR_PINMAP[4][2] = {
     {MOTOR_Q_PIN1, MOTOR_Q_PIN2}, // Motor Q

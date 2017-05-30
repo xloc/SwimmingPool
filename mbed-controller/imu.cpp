@@ -1,8 +1,5 @@
 #include "imu.h"
 
-#define IMU_TX_PINMAP p28
-#define IMU_RX_PINMAP p27
-
 Serial device(IMU_TX_PINMAP, IMU_RX_PINMAP);  // tx, rx
 
 char gyroBuffer[20] = {0};

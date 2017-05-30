@@ -2,6 +2,7 @@
 #define LATCH_H
 
 #include "mbed.h"
+#include "config.h"
 
 extern BusInOut latched_bus;
 

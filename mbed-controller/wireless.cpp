@@ -1,8 +1,5 @@
 #include "wireless.h"
 
-#define WIRELESS_TX_PINMAP p13
-#define WIRELESS_RX_PINMAP p14
-
 Serial wireless_uart(WIRELESS_TX_PINMAP, WIRELESS_RX_PINMAP); //tx rx
 
 /**

@@ -2,6 +2,7 @@
 #define GYROSCOPE_H
 
 #include "mbed.h"
+#include "config.h"
 
 
 extern float yaw;
