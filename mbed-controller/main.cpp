@@ -117,10 +117,10 @@ void reply(char *message){
         where ?s are head, right and down accelerometer readings in unit g
  */
 void response(){
-    char rdata[RESPONSE_BUFFER_SIZE] = {0};
+    char rdata[RESPONSE_BUFFER_SIZE+1] = {0};
     if(buffer[1]=='g'){
     // Request gyroscope angle
-        sprintf(rdata, "%.2f", yaw);
+        sprintf(rdata, "g%.2f", yaw);
         reply(rdata);
     }else if(buffer[1] == 'u'){
     // Request ultrasonic sensor data
@@ -128,14 +128,14 @@ void response(){
         if(sensor_id >= 0 && sensor_id <= 9){
             int distance = get_distance(sensor_id);
             if(distance != -1){
-                sprintf(rdata, "%d", distance);
+                sprintf(rdata, "u%d", distance);
                 reply(rdata);
             }else{
-                reply("!DISTANCE");
+                reply("u!DISTANCE");
             }
 
         }else{
-            reply("!ID");
+            reply("u!ID");
         }
 
     }else if(buffer[1] == 'm'){
@@ -154,8 +154,9 @@ void response(){
         //     latched_bus[0] = 1;
         //     latch_enable_o2 = LATCH_OUTPUT_DISABLE;
         // }
-        // sprintf(rdata, "%.2f,%.2f,%.2f,%.2f", q,a,w,s);
-        reply("OK");
+        sprintf(rdata, "m%.2f,%.2f,%.2f,%.2f", q,a,w,s);
+        reply(rdata);
+        // reply("mOK");
     // }else if(buffer[1] == '0'){
     //     latched_bus[6] = !latched_bus[6];
     //     reply("OK");
@@ -165,10 +166,12 @@ void response(){
     }
     else if(buffer[1]=='c'){
     // Test Acknowledge
-        reply("RECEIVED");
+        reply("cRECEIVED");
     }else if(buffer[1] == 't'){
     // Test Loop
-        char *dupli = rdata;
+        rdata[0] = 't';
+        // skip the first char which is the command title
+        char *dupli = rdata + 1;
         for(char *origin=(buffer+2); *origin!='\0'; origin++, dupli++){
             *dupli = *origin;
         }
@@ -187,17 +190,18 @@ void response(){
 
         // Send message througe wireless_uart
         wireless_send(rdata);
-        reply("SEND_OK");
+        reply("wSEND_OK");
     }else if(buffer[1] == 'r'){
-        int status = wireless_get(rdata);
+        rdata[0] = 'r';
+        int status = wireless_get(rdata+1);
         if(status == WIRELESS_RECEIVED){
             reply(rdata);
         }else{
-            reply("!NO_DATA");
+            reply("r!NO_DATA");
         }
     }else if(buffer[1] == 'a'){
     // Request acceleration of 3 axis
-        sprintf(rdata, "%.3f,%.3f,%.3f", a_x, a_y, a_z);
+        sprintf(rdata, "a%.3f,%.3f,%.3f", a_x, a_y, a_z);
         reply(rdata);
     }
 }
