@@ -5,7 +5,7 @@ int MOTOR_DIR_PINMAP[4][2] = {
     {MOTOR_Q_PIN1, MOTOR_Q_PIN2}, // Motor Q
     {MOTOR_A_PIN1, MOTOR_A_PIN2}, // Motor A
     {MOTOR_W_PIN1, MOTOR_W_PIN2}, // Motor W
-    {MOTOR_S_PIN1, MOTOR_S_PIN1}  // Motor S
+    {MOTOR_S_PIN1, MOTOR_S_PIN2}  // Motor S
 };
 
 PwmOut motor_pwm[] = {
